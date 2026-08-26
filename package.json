@@ -1,7 +1,7 @@
 {
-  "name": "b20-royal",
+  "name": "royalbase",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
     "@rainbow-me/rainbowkit": "^2.1.3",
     "wagmi": "^2.12.0",
     "viem": "^2.21.0",
