@@ -3,11 +3,11 @@ import LandingHeader from '../components/landing/LandingHeader';
 import HeroSection   from '../components/landing/HeroSection';
 import AboutSection  from '../components/landing/AboutSection';
 import WhyTipping    from '../components/landing/WhyTipping';
+import HowItWorks    from '../components/landing/HowItWorks';
+import TierSection   from '../components/landing/TierSection';
 
-// Part 3-5 akan ditambahkan setelah konfirmasi
-// import HowItWorks    from '../components/landing/HowItWorks';
-// import TierSection   from '../components/landing/TierSection';
-// import RoyalPoints   from '../components/landing/RoyalPoints';
+// Part 4-5 akan ditambahkan setelah konfirmasi
+// import RoyalPoints    from '../components/landing/RoyalPoints';
 // import RoadmapSection from '../components/landing/RoadmapSection';
 // import LandingFooter  from '../components/landing/LandingFooter';
 
@@ -19,6 +19,8 @@ export default function LandingPage() {
         <HeroSection />
         <AboutSection />
         <WhyTipping />
+        <HowItWorks />
+        <TierSection />
       </main>
     </>
   );
