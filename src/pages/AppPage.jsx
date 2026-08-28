@@ -1,51 +1,67 @@
-// App page — semua komponen app yang sudah ada sebelumnya
-// Import dari komponen yang sudah dibuat di Part sebelumnya
-import '../index.css';
 import { useState, useCallback } from 'react';
-import PageLoader       from '../components/PageLoader';
-import WinnerBanner     from '../components/WinnerBanner';
-import Header           from '../components/Header';
-import RoyalTicker      from '../components/RoyalTicker';
-import PrizePool        from '../components/PrizePool';
-import TipForm          from '../components/TipForm';
-import Leaderboard      from '../components/Leaderboard';
-import AppreciationWall from '../components/AppreciationWall';
-import Footer           from '../components/Footer';
 import { useAdaptiveGrid } from '../hooks/useAdaptiveGrid';
 import { useCursorGlow }   from '../hooks/useCursorGlow';
+import PageLoader    from '../components/PageLoader';
+import AppHeader     from '../components/AppHeader';
+import BottomTabBar  from '../components/BottomTabBar';
+import PlayTab       from '../components/tabs/PlayTab';
+import WalletTab     from '../components/tabs/WalletTab';
+import RoyalTab      from '../components/tabs/RoyalTab';
+import '../index.css';
+
+const TOP_OFFSET    = 122;
+const BOTTOM_OFFSET = 64;
 
 export default function AppPage() {
-  const [lang, setLang]     = useState('EN');
-  const [loaded, setLoaded] = useState(false);
+  const [lang, setLang]           = useState('EN');
+  const [loaded, setLoaded]       = useState(false);
+  const [activeTab, setActiveTab] = useState('play');
 
   useAdaptiveGrid();
   useCursorGlow();
 
   const handleDone = useCallback(() => setLoaded(true), []);
 
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'play':   return <PlayTab />;
+      case 'wallet': return <WalletTab />;
+      case 'royal':  return <RoyalTab />;
+      default:       return <PlayTab />;
+    }
+  };
+
   return (
     <>
       {!loaded && <PageLoader onDone={handleDone} />}
-      <WinnerBanner />
-      <Header lang={lang} setLang={setLang} />
-      <RoyalTicker />
+      <AppHeader lang={lang} setLang={setLang} />
       <main style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '24px 16px 0',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
+        position: 'fixed',
+        top: `${TOP_OFFSET}px`,
+        left: 0, right: 0,
+        bottom: `${BOTTOM_OFFSET}px`,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        background: '#f5f8ff',
         opacity: loaded ? 1 : 0,
-        transform: loaded ? 'translateY(0)' : 'translateY(16px)',
-        transition: 'opacity 0.6s cubic-bezier(.22,1,.36,1), transform 0.6s cubic-bezier(.22,1,.36,1)',
+        transition: 'opacity 0.5s ease',
       }}>
-        <PrizePool />
-        <TipForm />
-        <Leaderboard />
-        <AppreciationWall />
+        <div style={{
+          maxWidth: '480px',
+          margin: '0 auto',
+          padding: '16px 16px 24px',
+        }}>
+          {renderTab()}
+        </div>
       </main>
-      <Footer />
+      <BottomTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <style>{`
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+      `}</style>
     </>
   );
 }
