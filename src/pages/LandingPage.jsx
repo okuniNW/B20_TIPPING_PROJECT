@@ -7,8 +7,7 @@ import HowItWorks     from '../components/landing/HowItWorks';
 import TierSection    from '../components/landing/TierSection';
 import RoyalPoints    from '../components/landing/RoyalPoints';
 import RoadmapSection from '../components/landing/RoadmapSection';
-
-// Part 5 — LandingFooter akan ditambahkan setelah konfirmasi
+import LandingFooter  from '../components/landing/LandingFooter';
 
 export default function LandingPage() {
   return (
@@ -23,6 +22,7 @@ export default function LandingPage() {
         <RoyalPoints />
         <RoadmapSection />
       </main>
+      <LandingFooter />
     </>
   );
 }
