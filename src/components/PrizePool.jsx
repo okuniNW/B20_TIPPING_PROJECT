@@ -1,29 +1,28 @@
-import { useState, useEffect } from 'react';
+import { usePrizePool } from '../hooks/useContractData';
+import { formatETH } from '../hooks/contractConfig';
 
-const TOTAL_SECONDS = 18 * 3600 + 42 * 60 + 7;
+const TIPS_TOTAL = 50;
 
 export default function PrizePool() {
-  const [seconds, setSeconds] = useState(TOTAL_SECONDS);
-  const [drawInProgress, setDraw] = useState(false);
+  const {
+    prizePoolWei,
+    tipperCount,
+    drawCount,
+    secondsUntil,
+    isLoading,
+  } = usePrizePool();
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setSeconds(prev => {
-        if (prev <= 1) { setDraw(true); clearInterval(id); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
+  const prizeETH   = formatETH(prizePoolWei);
+  const prizeUSD   = (Number(prizePoolWei) / 1e18 * 3800).toFixed(0);
+  const drawInProgress = secondsUntil === 0;
 
-  const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-  const s = String(seconds % 60).padStart(2, '0');
-  const isUrgent = seconds < 3600 && !drawInProgress;
+  const h = String(Math.floor(secondsUntil / 3600)).padStart(2, '0');
+  const m = String(Math.floor((secondsUntil % 3600) / 60)).padStart(2, '0');
+  const s = String(secondsUntil % 60).padStart(2, '0');
+  const isUrgent = secondsUntil > 0 && secondsUntil < 3600;
 
-  const TIPS_NOW   = 19;
-  const TIPS_TOTAL = 50;
-  const pct        = (TIPS_NOW / TIPS_TOTAL) * 100;
+  // Progress bar — hitung dari tipperCount vs target
+  const pct = Math.min((tipperCount / TIPS_TOTAL) * 100, 100);
 
   return (
     <div style={{
@@ -33,19 +32,12 @@ export default function PrizePool() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Background decoration */}
+      {/* Decorations */}
       <div style={{
         position: 'absolute',
         top: '-4rem', right: '-4rem',
         width: '14rem', height: '14rem',
         background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '-2rem', left: '-2rem',
-        width: '8rem', height: '8rem',
-        background: 'radial-gradient(circle, rgba(251,191,36,0.1) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -61,43 +53,56 @@ export default function PrizePool() {
         🏆 Current Prize Pool
       </div>
 
-      {/* Big ETH amount — kuning stroke putih di bg biru */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        gap: '8px',
-        marginBottom: '4px',
-      }}>
-        <span style={{
+      {/* Amount — real dari contract */}
+      {isLoading ? (
+        <div style={{
           fontSize: '3.75rem',
           fontWeight: 800,
-          color: '#fbbf24',
-          WebkitTextStroke: '1.5px white',
+          color: 'rgba(255,255,255,0.2)',
           letterSpacing: '-0.03em',
           lineHeight: 1,
-          fontVariantNumeric: 'tabular-nums',
-          animation: 'pulse-prize 2.5s ease-in-out infinite',
+          marginBottom: '4px',
         }}>
-          0.847
-        </span>
-        <span style={{
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          color: 'rgba(255,255,255,0.6)',
+          ...
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: '8px',
+          marginBottom: '4px',
         }}>
-          ETH
-        </span>
-      </div>
+          <span style={{
+            fontSize: '3.75rem',
+            fontWeight: 800,
+            color: '#fbbf24',
+            WebkitTextStroke: '1.5px white',
+            letterSpacing: '-0.03em',
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            animation: 'pulse-prize 2.5s ease-in-out infinite',
+          }}>
+            {prizeETH || '0'}
+          </span>
+          <span style={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.6)',
+          }}>
+            ETH
+          </span>
+        </div>
+      )}
 
       <div style={{
         fontSize: '0.825rem',
         color: 'rgba(255,255,255,0.55)',
         marginBottom: '1.25rem',
       }}>
-        ≈ $3,210 USD
+        ≈ ${Number(prizeUSD).toLocaleString()} USD
       </div>
 
-      {/* Progress bar */}
+      {/* Progress */}
       <div style={{ marginBottom: '1.25rem' }}>
         <div style={{
           display: 'flex',
@@ -107,8 +112,10 @@ export default function PrizePool() {
           marginBottom: '6px',
           fontWeight: 500,
         }}>
-          <span><strong style={{ color: '#fff' }}>{TIPS_NOW}</strong> tips sent</span>
-          <span>{TIPS_TOTAL} needed</span>
+          <span>
+            <strong style={{ color: '#fff' }}>{tipperCount}</strong> tippers
+          </span>
+          <span>{TIPS_TOTAL} target</span>
         </div>
         <div style={{
           height: '6px',
@@ -124,13 +131,6 @@ export default function PrizePool() {
             transition: 'width 0.8s ease',
           }} />
         </div>
-        <div style={{
-          fontSize: '0.7rem',
-          color: 'rgba(255,255,255,0.45)',
-          marginTop: '4px',
-        }}>
-          {TIPS_TOTAL - TIPS_NOW} more tips until draw
-        </div>
       </div>
 
       {/* Divider */}
@@ -140,14 +140,13 @@ export default function PrizePool() {
         marginBottom: '1.25rem',
       }} />
 
-      {/* Countdown */}
+      {/* Countdown — real dari contract */}
       {drawInProgress ? (
         <div style={{
           background: 'rgba(255,255,255,0.1)',
           borderRadius: '1rem',
           padding: '0.875rem',
           textAlign: 'center',
-          border: '1px solid rgba(255,255,255,0.15)',
         }}>
           <div style={{
             fontSize: '0.9rem',
@@ -157,7 +156,11 @@ export default function PrizePool() {
           }}>
             ⚡ Draw in progress...
           </div>
-          <div style={{ fontSize: '0.775rem', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+          <div style={{
+            fontSize: '0.775rem',
+            color: 'rgba(255,255,255,0.6)',
+            marginTop: '4px',
+          }}>
             Winner announced shortly
           </div>
         </div>
@@ -188,7 +191,7 @@ export default function PrizePool() {
                   border: '1px solid rgba(255,255,255,0.08)',
                 }}>
                   <span style={{
-                    fontSize: isUrgent ? '1.75rem' : '2rem',
+                    fontSize: '2rem',
                     fontWeight: 800,
                     color: isUrgent ? '#fc4444' : '#fff',
                     lineHeight: 1,
@@ -203,7 +206,6 @@ export default function PrizePool() {
                   fontWeight: 700,
                   color: 'rgba(255,255,255,0.4)',
                   letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
                 }}>
                   {label}
                 </div>
