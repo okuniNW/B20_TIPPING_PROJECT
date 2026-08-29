@@ -1,47 +1,63 @@
-const WALL = [
-  {
-    name: 'AcmeCorp',
-    tier: 'B20',
-    init: 'AC',
-    bg: '#dbeafe',
-    msg: 'Keep building. The future is on-chain. Proud to support the next generation.',
-    time: '2h ago',
-  },
-  {
-    name: '0xMike',
-    tier: 'RoyalBase',
-    init: 'MK',
-    bg: '#dcfce7',
-    msg: 'Exactly what Base needs. Onchain, transparent, fun.',
-    time: '5h ago',
-  },
-  {
-    name: 'StellaVentures',
-    tier: 'RoyalBase',
-    init: 'SV',
-    bg: '#fae8ff',
-    msg: 'Backing builders who ship. B20 Royal is the vibe.',
-    time: '8h ago',
-  },
-  {
-    name: 'CryptoNinja',
-    tier: 'BaseApp',
-    init: 'CN',
-    bg: '#fef3c7',
-    msg: 'Every tip is a vote for an onchain future.',
-    time: '12h ago',
-  },
-];
+import { useWallEntries } from '../hooks/useContractData';
+import { formatETH, TIER_NAMES, shortAddr, timeAgo } from '../hooks/contractConfig';
 
 const TIER_STYLE = {
-  'B20':         { bg: '#0052ff', color: '#fff' },
-  'RoyalBase':   { bg: '#fef3c7', color: '#d97706' },
-  'BaseApp':     { bg: '#eff6ff', color: '#0052ff' },
-  'BaseBuilder': { bg: '#eff6ff', color: '#0040cc' },
-  'Base':        { bg: '#f1f5f9', color: '#64748b' },
+  0: { bg: '#f1f5f9', color: '#64748b' },
+  1: { bg: '#eff6ff', color: '#0040cc' },
+  2: { bg: '#eff6ff', color: '#0052ff' },
+  3: { bg: '#f0fdf4', color: '#16a34a' },
+  4: { bg: '#fef3c7', color: '#d97706' },
+  5: { bg: '#0052ff', color: '#fff'    },
 };
 
+// Warna avatar berdasarkan address
+function avatarColor(addr) {
+  const colors = ['#dbeafe','#dcfce7','#fae8ff','#fef3c7','#ffe4e6','#f0fdf4'];
+  const idx = parseInt(addr?.slice(2, 4) || '0', 16) % colors.length;
+  return colors[idx];
+}
+
+function SkeletonEntry() {
+  return (
+    <div style={{
+      display: 'flex',
+      gap: '10px',
+      padding: '12px 0',
+      borderBottom: '1px solid #f1f5f9',
+    }}>
+      <div style={{
+        width: '34px', height: '34px',
+        borderRadius: '50%',
+        background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f7 50%, #f1f5f9 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.5s infinite',
+        flexShrink: 0,
+      }} />
+      <div style={{ flex: 1 }}>
+        <div style={{
+          height: '14px',
+          width: '40%',
+          background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f7 50%, #f1f5f9 75%)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 1.5s infinite',
+          borderRadius: '4px',
+          marginBottom: '8px',
+        }} />
+        <div style={{
+          height: '36px',
+          background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f7 50%, #f1f5f9 75%)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 1.5s infinite',
+          borderRadius: '4px',
+        }} />
+      </div>
+    </div>
+  );
+}
+
 export default function AppreciationWall() {
+  const { entries, isLoading } = useWallEntries(10);
+
   return (
     <div style={{
       background: '#fff',
@@ -56,12 +72,7 @@ export default function AppreciationWall() {
         padding: '1rem 1.25rem 0.875rem',
         borderBottom: '1px solid #f1f5f9',
       }}>
-        <div style={{
-          fontSize: '0.925rem',
-          fontWeight: 700,
-          color: '#09090b',
-          marginBottom: '2px',
-        }}>
+        <div style={{ fontSize: '0.925rem', fontWeight: 700, color: '#09090b', marginBottom: '2px' }}>
           Appreciation Wall
         </div>
         <div style={{
@@ -80,115 +91,124 @@ export default function AppreciationWall() {
       </div>
 
       {/* Entries */}
-      <div style={{ padding: '0.5rem 1.25rem' }}>
-        {WALL.map((item, i) => {
-          const t = TIER_STYLE[item.tier] || TIER_STYLE['Base'];
-          return (
-            <div key={i} style={{
-              display: 'flex',
-              gap: '10px',
-              padding: '12px 0',
-              borderBottom: i < WALL.length - 1
-                ? '1px solid #f1f5f9'
-                : 'none',
-            }}>
-              {/* Avatar */}
-              <div style={{
-                width: '34px', height: '34px',
-                borderRadius: '50%',
-                background: item.bg,
+      <div style={{ padding: '0 1.25rem' }}>
+        {isLoading ? (
+          <>
+            <SkeletonEntry />
+            <SkeletonEntry />
+            <SkeletonEntry />
+          </>
+        ) : entries.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '2rem 0',
+            fontSize: '0.825rem',
+            color: '#8b95a8',
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✍️</div>
+            No messages yet. Send a tip and leave your mark!
+          </div>
+        ) : (
+          entries.map((entry, i) => {
+            const name  = entry.displayName || shortAddr(entry.tipper);
+            const bg    = avatarColor(entry.tipper);
+            return (
+              <div key={i} style={{
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: '#09090b',
-                flexShrink: 0,
-                marginTop: '2px',
-                border: '1.5px solid #e2e8f7',
+                gap: '10px',
+                padding: '12px 0',
+                borderBottom: i < entries.length - 1 ? '1px solid #f1f5f9' : 'none',
               }}>
-                {item.init}
-              </div>
-
-              {/* Content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Avatar */}
                 <div style={{
+                  width: '34px', height: '34px',
+                  borderRadius: '50%',
+                  background: bg,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  flexWrap: 'wrap',
-                  marginBottom: '5px',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#09090b',
+                  flexShrink: 0,
+                  marginTop: '2px',
+                  border: '1.5px solid #e2e8f7',
                 }}>
-                  <span style={{
+                  {name.slice(0, 2).toUpperCase()}
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                    marginBottom: '5px',
+                  }}>
+                    <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#09090b' }}>
+                      {name}
+                    </span>
+                    <span style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      color: '#8b95a8',
+                    }}>
+                      · {formatETH(entry.amount)} ETH
+                    </span>
+                  </div>
+
+                  <div style={{
                     fontSize: '0.825rem',
-                    fontWeight: 700,
-                    color: '#09090b',
+                    color: '#52525b',
+                    lineHeight: 1.6,
+                    marginBottom: '6px',
+                    wordBreak: 'break-word',
                   }}>
-                    {item.name}
-                  </span>
-                  <span style={{
-                    fontSize: '0.62rem',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: '9999px',
-                    background: t.bg,
-                    color: t.color,
+                    "{entry.message}"
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.65rem',
+                    color: '#b8c2d4',
                   }}>
-                    {item.tier}
-                  </span>
-                </div>
-
-                <div style={{
-                  fontSize: '0.825rem',
-                  color: '#52525b',
-                  lineHeight: 1.6,
-                  marginBottom: '6px',
-                }}>
-                  "{item.msg}"
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  fontSize: '0.65rem',
-                  color: '#b8c2d4',
-                }}>
-                  <span>⛓</span>
-                  <span>On Base</span>
-                  <span>·</span>
-                  <span>{item.time}</span>
+                    <span>⛓</span>
+                    <span>On Base</span>
+                    <span>·</span>
+                    <span>{timeAgo(entry.timestamp)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
-      {/* Load more */}
-      <div style={{
-        padding: '0.75rem 1.25rem',
-        borderTop: '1px solid #f1f5f9',
-      }}>
-        <button style={{
-          width: '100%',
-          padding: '0.625rem',
-          background: '#f5f8ff',
-          border: '1px solid #e2e8f7',
-          borderRadius: '0.875rem',
-          fontSize: '0.775rem',
-          fontWeight: 600,
-          color: '#0052ff',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          transition: 'background 0.15s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
-        onMouseLeave={e => e.currentTarget.style.background = '#f5f8ff'}
-        >
-          View all messages →
-        </button>
-      </div>
+      {/* Footer */}
+      {entries.length > 0 && (
+        <div style={{
+          padding: '0.75rem 1.25rem',
+          borderTop: '1px solid #f1f5f9',
+        }}>
+          <div style={{
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            color: '#8b95a8',
+          }}>
+            Showing latest {entries.length} messages · All messages permanent on Base
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
     </div>
   );
 }
