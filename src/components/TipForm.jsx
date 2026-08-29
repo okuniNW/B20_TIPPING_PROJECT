@@ -1,34 +1,55 @@
-import { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount }    from 'wagmi';
+import { useSendTip }    from '../hooks/useContractWrite';
+import { usePrizePool }  from '../hooks/useContractData';
 
 const AMOUNTS = ['0.001', '0.005', '0.01', 'Custom'];
 const MAX_CHARS = 280;
+const PROTOCOL_FEE_ETH = 0.02;
 
 export default function TipForm() {
-  const { isConnected } = useAccount();
+  const { isConnected }                          = useAccount();
+  const { refetch }                              = usePrizePool();
+  const { sendTip, isLoading, isSuccess, error } = useSendTip();
+
   const [selected, setSelected] = useState('0.005');
   const [custom, setCustom]     = useState('');
   const [message, setMessage]   = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [formError, setFormError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const charsLeft = MAX_CHARS - message.length;
   const isCustom  = selected === 'Custom';
 
-  async function handleSubmit() {
+  // Hitung total yang dibayar user
+  const tipAmt   = isCustom ? Number(custom) || 0 : Number(selected);
+  const totalAmt = (tipAmt + PROTOCOL_FEE_ETH).toFixed(4);
+
+  // Handle sukses
+  useEffect(() => {
+    if (isSuccess) {
+      setShowSuccess(true);
+      setMessage('');
+      refetch();
+      setTimeout(() => setShowSuccess(false), 4000);
+    }
+  }, [isSuccess, refetch]);
+
+  function handleSubmit() {
     if (!isConnected) {
-      setError('Connect your wallet first.');
+      setFormError('Connect your wallet first.');
       return;
     }
     if (isCustom && (!custom || isNaN(custom) || Number(custom) <= 0)) {
-      setError('Enter a valid ETH amount.');
+      setFormError('Enter a valid ETH amount.');
       return;
     }
-    setError('');
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
-    alert('Smart contract coming soon!');
+    if (tipAmt < 0.001) {
+      setFormError('Minimum tip is 0.001 ETH.');
+      return;
+    }
+    setFormError('');
+    sendTip(tipAmt, message);
   }
 
   return (
@@ -53,6 +74,25 @@ export default function TipForm() {
           Every tip = one entry into the daily draw
         </div>
       </div>
+
+      {/* Success banner */}
+      {showSuccess && (
+        <div style={{
+          background: '#dcfce7',
+          border: '1px solid #86efac',
+          borderRadius: '0.75rem',
+          padding: '10px 14px',
+          marginBottom: '12px',
+          fontSize: '0.825rem',
+          color: '#15803d',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+        }}>
+          🎉 Tip sent! You are in the draw. Good luck!
+        </div>
+      )}
 
       {/* Amount grid */}
       <div style={{
@@ -168,8 +208,25 @@ export default function TipForm() {
         </span>
       </div>
 
+      {/* Total info */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '0.775rem',
+        color: '#8b95a8',
+        marginBottom: '10px',
+        padding: '8px 12px',
+        background: '#f5f8ff',
+        borderRadius: '0.75rem',
+      }}>
+        <span>Tip + Protocol fee</span>
+        <span style={{ fontWeight: 700, color: '#0052ff' }}>
+          {totalAmt} ETH total
+        </span>
+      </div>
+
       {/* Error */}
-      {error && (
+      {(formError || error) && (
         <div style={{
           fontSize: '0.8rem',
           color: '#ef4444',
@@ -179,34 +236,34 @@ export default function TipForm() {
           border: '1px solid rgba(239,68,68,0.15)',
           marginBottom: '10px',
         }}>
-          {error}
+          {formError || error?.message?.split('\n')[0] || 'Transaction failed'}
         </div>
       )}
 
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        disabled={loading}
+        disabled={isLoading}
         style={{
           width: '100%',
           padding: '13px',
-          background: loading ? '#94a3b8' : '#0052ff',
+          background: isLoading ? '#94a3b8' : '#0052ff',
           color: '#fff',
           border: 'none',
           borderRadius: '0.875rem',
           fontSize: '0.925rem',
           fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer',
+          cursor: isLoading ? 'not-allowed' : 'pointer',
           fontFamily: 'inherit',
           transition: 'all 0.2s ease',
           marginBottom: '10px',
-          boxShadow: loading ? 'none' : '0 4px 16px rgba(0,82,255,0.25)',
+          boxShadow: isLoading ? 'none' : '0 4px 16px rgba(0,82,255,0.25)',
         }}
       >
-        {loading ? '⏳ Sending...' : '🎲 Send Tip & Enter Draw'}
+        {isLoading ? '⏳ Confirming...' : '🎲 Send Tip & Enter Draw'}
       </button>
 
-      {/* Footer note */}
+      {/* Footer */}
       <div style={{
         fontSize: '0.7rem',
         color: '#b8c2d4',
