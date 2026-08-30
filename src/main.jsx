@@ -12,7 +12,7 @@ import AppPage     from './pages/AppPage';
 
 const config = getDefaultConfig({
   appName: 'RoyalBase',
-  projectId: 'royalbase_temp',
+  projectId: '881a15355c4bd9aa98afe247d03d87d9',
   chains: [baseSepolia],
   ssr: false,
 });
