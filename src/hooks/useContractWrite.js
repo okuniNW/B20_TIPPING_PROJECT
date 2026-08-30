@@ -1,101 +1,125 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther } from 'viem';
 import { CONTRACTS, B20ROYAL_ABI, ROYAL_POINTS_ABI } from './contractConfig';
 
-const PROTOCOL_FEE = parseEther('0.02');
+const ADDR = CONTRACTS.B20ROYAL_V2.address;
 
-// ============================================================
-// HOOK — Kirim tip ke contract
-// ============================================================
-export function useSendTip() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
+function useWrite(functionName, options = {}) {
+  const { writeContract, data: hash, isPending, error, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  function sendTip(amountETH, message = '') {
-    const tipAmount  = parseEther(amountETH.toString());
-    const totalValue = tipAmount + PROTOCOL_FEE;
-
+  function execute(args = [], value = undefined) {
     writeContract({
-      address: CONTRACTS.B20ROYAL.address,
-      abi:     B20ROYAL_ABI,
-      functionName: 'tip',
-      args:    [message],
-      value:   totalValue,
+      address: ADDR,
+      abi: B20ROYAL_ABI,
+      functionName,
+      args,
+      ...(value !== undefined ? { value } : {}),
     });
   }
 
   return {
-    sendTip,
+    execute,
     hash,
     isPending,
     isConfirming,
     isSuccess,
     error,
     isLoading: isPending || isConfirming,
+    reset,
   };
 }
 
-// ============================================================
-// HOOK — Set display name on-chain
-// ============================================================
+// Free tip — no ETH required (only gas)
+export function useFreeTip() {
+  const w = useWrite('freeTip');
+  return {
+    ...w,
+    sendFreeTip: (message = '') => w.execute([message]),
+  };
+}
+
+// Premium tip — send ETH
+export function usePremiumTip() {
+  const w = useWrite('premiumTip');
+  return {
+    ...w,
+    sendPremiumTip: (ethAmount, message = '') =>
+      w.execute([message], ethAmount),
+  };
+}
+
+// Post message using premium slots
+export function usePostMessage() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  function postMsg(message, protocolFeeWei) {
+    writeContract({
+      address: ADDR,
+      abi: B20ROYAL_ABI,
+      functionName: 'postMessage',
+      args: [message],
+      value: protocolFeeWei,
+    });
+  }
+
+  return { postMsg, isPending, isConfirming, isSuccess, error,
+           isLoading: isPending || isConfirming };
+}
+
+// Set display name
 export function useSetDisplayName() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  function setName(name) {
+  function setName(name, protocolFeeWei) {
     writeContract({
-      address: CONTRACTS.B20ROYAL.address,
-      abi:     B20ROYAL_ABI,
+      address: ADDR,
+      abi: B20ROYAL_ABI,
       functionName: 'setDisplayName',
-      args:    [name],
-      value:   PROTOCOL_FEE,
+      args: [name],
+      value: protocolFeeWei,
     });
   }
 
-  return {
-    setName,
-    hash,
-    isPending,
-    isConfirming,
-    isSuccess,
-    error,
-    isLoading: isPending || isConfirming,
-  };
+  return { setName, isPending, isConfirming, isSuccess, error,
+           isLoading: isPending || isConfirming };
 }
 
-// ============================================================
-// HOOK — Claim Royal Points on-chain
-// ============================================================
-export function useClaimPoints() {
+// GM check-in
+export function useGMCheckIn() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  function claimPoints(amount, nonce, signature) {
+  function checkIn(protocolFeeWei) {
     writeContract({
-      address: CONTRACTS.ROYAL_POINTS.address,
-      abi:     ROYAL_POINTS_ABI,
-      functionName: 'claimPoints',
-      args:    [BigInt(amount), nonce, signature],
-      value:   PROTOCOL_FEE,
+      address: ADDR,
+      abi: B20ROYAL_ABI,
+      functionName: 'gmCheckIn',
+      args: [],
+      value: protocolFeeWei,
     });
   }
 
-  return {
-    claimPoints,
-    hash,
-    isPending,
-    isConfirming,
-    isSuccess,
-    error,
-    isLoading: isPending || isConfirming,
-  };
+  return { checkIn, isPending, isConfirming, isSuccess, error,
+           isLoading: isPending || isConfirming };
+}
+
+// Claim Royal Points
+export function useClaimPoints() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  function claimPoints(amount, nonce, signature, protocolFeeWei) {
+    writeContract({
+      address: CONTRACTS.ROYAL_POINTS.address,
+      abi: ROYAL_POINTS_ABI,
+      functionName: 'claimPoints',
+      args: [BigInt(amount), nonce, signature],
+      value: protocolFeeWei,
+    });
+  }
+
+  return { claimPoints, isPending, isConfirming, isSuccess, error,
+           isLoading: isPending || isConfirming };
 }
