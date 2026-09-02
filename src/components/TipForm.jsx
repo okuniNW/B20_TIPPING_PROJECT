@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAccount }    from 'wagmi';
-import { useSendTip }    from '../hooks/useContractWrite';
+import { usePremiumTip } from '../hooks/useContractWrite';
 import { usePrizePool }  from '../hooks/useContractData';
 
 const AMOUNTS = ['0.001', '0.005', '0.01', 'Custom'];
@@ -10,7 +10,7 @@ const PROTOCOL_FEE_ETH = 0.02;
 export default function TipForm() {
   const { isConnected }                          = useAccount();
   const { refetch }                              = usePrizePool();
-  const { sendTip, isLoading, isSuccess, error } = useSendTip();
+  const { sendPremiumTip, isLoading, isSuccess, error } = usePremiumTip();
 
   const [selected, setSelected] = useState('0.005');
   const [custom, setCustom]     = useState('');
@@ -49,7 +49,7 @@ export default function TipForm() {
       return;
     }
     setFormError('');
-    sendTip(tipAmt, message);
+    sendPremiumTip(tipAmt, message);
   }
 
   return (
