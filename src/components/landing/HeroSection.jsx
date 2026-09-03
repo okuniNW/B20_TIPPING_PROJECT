@@ -188,46 +188,79 @@ export default function HeroSection() {
             alignItems: 'flex-start',
           }} className="reveal d3">
 
-            {/* Main mockup placeholder */}
-            <div style={{
-              width: '280px',
-              height: '520px',
-              background: '#f0f4ff',
-              borderRadius: '2rem',
-              border: '2px solid #e2e8f7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              position: 'relative',
-              boxShadow: '0 24px 64px rgba(0,82,255,0.12)',
-              overflow: 'hidden',
-            }}>
-              {/* Placeholder for user's custom image */}
-              <img
-                src="/images/app-mockup.png"
-                alt="RoyalBase App"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  position: 'absolute',
-                  inset: 0,
-                }}
-                onError={e => { e.target.style.display = 'none'; }}
-              />
+            {/* App preview mini */}
+<div style={{
+  width: '260px',
+  background: '#fff',
+  borderRadius: '2rem',
+  border: '2px solid #e2e8f7',
+  boxShadow: '0 24px 64px rgba(0,82,255,0.12)',
+  overflow: 'hidden',
+  padding: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+}}>
+  {/* Mini prize pool */}
+  <div style={{
+    background: '#0052ff',
+    borderRadius: '1rem',
+    padding: '14px',
+    color: '#fff',
+  }}>
+    <div style={{ fontSize: '9px', opacity: 0.6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>🏆 Prize Pool</div>
+    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fbbf24', WebkitTextStroke: '1px white', lineHeight: 1.1 }}>0.847</div>
+    <div style={{ fontSize: '10px', opacity: 0.6 }}>ETH ≈ $3,218 USD</div>
+    <div style={{ marginTop: '8px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '9999px' }}>
+      <div style={{ width: '60%', height: '100%', background: '#fbbf24', borderRadius: '9999px' }} />
+    </div>
+    <div style={{ fontSize: '9px', opacity: 0.5, marginTop: '4px' }}>Next draw in 08:24:11</div>
+  </div>
 
-              {/* Fallback if image not loaded */}
-              <svg width="48" height="48" viewBox="0 0 36 36" fill="none">
-                <rect width="36" height="36" rx="10" fill="#0052ff"/>
-                <path d="M18 6l3 7h7l-5.5 4.5 2 7.5L18 21l-6.5 4 2-7.5L8 13h7z" fill="#fbbf24"/>
-                <circle cx="18" cy="18" r="3.5" fill="#fff" opacity="0.9"/>
-              </svg>
-              <span style={{ fontSize: '0.8rem', color: '#8b95a8', textAlign: 'center', padding: '0 1rem' }}>
-                Upload app-mockup.png ke<br />public/images/
-              </span>
-            </div>
+  {/* Mini tip form */}
+  <div style={{ background: '#f5f8ff', borderRadius: '0.875rem', padding: '12px' }}>
+    <div style={{ fontSize: '9px', fontWeight: 700, color: '#8b95a8', marginBottom: '6px', textTransform: 'uppercase' }}>Choose amount</div>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '8px' }}>
+      {['0.001 ETH','0.005 ETH','0.01 ETH','Custom'].map((a, i) => (
+        <div key={i} style={{
+          padding: '5px',
+          borderRadius: '0.5rem',
+          border: i === 1 ? '1.5px solid #0052ff' : '1.5px solid #e2e8f7',
+          background: i === 1 ? '#eff6ff' : '#fff',
+          fontSize: '9px',
+          fontWeight: i === 1 ? 700 : 400,
+          color: i === 1 ? '#0052ff' : '#52525b',
+          textAlign: 'center',
+        }}>{a}</div>
+      ))}
+    </div>
+    <div style={{
+      width: '100%',
+      padding: '8px',
+      background: '#0052ff',
+      borderRadius: '0.625rem',
+      color: '#fff',
+      fontSize: '10px',
+      fontWeight: 700,
+      textAlign: 'center',
+    }}>🎲 Send Tip & Enter Draw</div>
+  </div>
+
+  {/* Mini leaderboard */}
+  <div style={{ background: '#f5f8ff', borderRadius: '0.875rem', padding: '10px 12px' }}>
+    <div style={{ fontSize: '9px', fontWeight: 700, color: '#0052ff', marginBottom: '6px' }}>👑 Top Royals</div>
+    {['0xMike · B20','StellaV · RoyalBase','CryptoN · BaseApp'].map((name, i) => (
+      <div key={i} style={{
+        display: 'flex', justifyContent: 'space-between',
+        fontSize: '9px', color: '#52525b', padding: '3px 0',
+        borderBottom: i < 2 ? '1px solid #e2e8f7' : 'none',
+      }}>
+        <span>{i+1}. {name}</span>
+        <span style={{ color: '#0052ff', fontWeight: 700 }}>+{[0.847,0.5,0.21][i]} ETH</span>
+      </div>
+    ))}
+  </div>
+</div>
 
             {/* Floating cards — seperti referensi */}
             {FLOAT_CARDS.map((card, i) => (
