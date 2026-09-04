@@ -15,7 +15,7 @@ const SOLUTIONS = [
 export default function WhyTipping() {
   return (
     <section style={{
-      background: '#001a66',
+      background: '#0052ff',
       padding: '5rem 0',
       position: 'relative',
       overflow: 'hidden',
