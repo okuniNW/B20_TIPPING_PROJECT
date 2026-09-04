@@ -50,7 +50,7 @@ export default function AppPage() {
         <div style={{
           maxWidth: '480px',
           margin: '0 auto',
-          padding: '16px 16px 32px',
+          padding: '16px 16px 80px',
         }}>
           {renderTab()}
         </div>
