@@ -44,7 +44,7 @@ export default function HeroSection() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: isDesktop ? '1.2fr 1fr' : '1fr',
-          gap: '3rem',
+          gap: isDesktop ? '3rem' : '1.5rem',
           alignItems: 'center',
         }}>
           {/* LEFT — Text */}
