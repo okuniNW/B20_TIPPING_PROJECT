@@ -62,7 +62,7 @@ export default function WhyTipping() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '1.25rem',
+          gap: '0.75rem',
         }} className="before-after-grid">
 
           {/* Before */}
